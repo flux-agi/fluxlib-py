@@ -139,7 +139,7 @@ class Node:
         return self.ports[alias]
 
     def get_global_topic(self):
-        return f"service/{self.node_id}/topic"
+        return f"service/tick"
     
     async def start(self) -> None:
         try:

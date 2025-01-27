@@ -1,15 +1,13 @@
 absl-py==2.1.0
 argcomplete==3.5.1
 astunparse==1.6.3
-asyncio==3.4.3
 certifi==2024.8.30
 charset-normalizer==3.4.0
 colorama==0.4.6
 commitizen==3.30.0
-dataclasses==0.6
 decli==0.6.2
 flatbuffers==24.3.25
-fluxmq @ git+https://github.com/flux-agi/fluxmq-py.git@5a70efd479dca04bd9142a4759901902e98dd202
+fluxmq @ git+https://github.com/flux-agi/fluxmq-py.git@a1c412efb90a961c8631c0c394c0e3c9401ae9c1
 gast==0.6.0
 google-pasta==0.2.0
 grpcio==1.67.0

@@ -29,6 +29,11 @@ class DataPort:
     direction: str
 
 @dataclass
+class DataTimer:
+    type: str
+    interval: int
+
+@dataclass
 class DataNode:
     id: str
     ports: list[DataPort]
@@ -66,7 +71,7 @@ class Port:
 
     def _subscribe(self, callback):
         self.subscriptions.append(callback)
-        self.service._subscribe(self.topic, callback)
+        self.service.subscribe(self.topic, callback)
         return
     
     def publish(self, data):
@@ -85,7 +90,7 @@ class Node:
     input_tasks: list[Task]
     node_id: str
     node: DataNode
-    timer: str
+    timer: DataTimer
     status_callback_on_stop: Callable[[], None]
     status_callback_on_start: Callable[[], None]
     status: str
@@ -99,7 +104,9 @@ class Node:
                  node: DataNode,
                  logger: Logger = None,
                  state: StateSlice = StateSlice(),
+                 timer: DataTimer = None,
                  status_factory: NodeStatus = NodeStatus()):
+        self.timer = timer
         self.service = service
         self.node_id = node_id
         self.node = node
@@ -131,6 +138,9 @@ class Node:
     def output(self, alias: str):
         return self.ports[alias]
 
+    def get_global_topic(self):
+        return f"service/{self.node_id}/topic"
+    
     async def start(self) -> None:
         try:
             await self.on_start()
@@ -180,6 +190,17 @@ class Node:
 
     async def on_stop(self) -> None:
         pass
+
+    async def on_tick(self) -> None:
+        if self.service.opts.hasGlobalTick:
+            self.service.subscribe(self.get_global_topic())
+            return
+        
+        if self.timer.interval:
+            while True:
+                await asyncio.sleep(self.timer.interval / 1000)
+
+        return
 
     async def on_destroy(self) -> None:
         pass

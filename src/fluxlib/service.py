@@ -1,4 +1,5 @@
 from asyncio import Task
+from dataclasses import dataclass
 from logging import Logger, getLogger
 from typing import Coroutine, Any, Callable, Dict, TYPE_CHECKING
 
@@ -18,19 +19,26 @@ from fluxlib.state import StateSlice
 if TYPE_CHECKING:
     from fluxlib.node import Node
 
+@dataclass
+class ServiceOptions:
+    hasGlobalTick: bool
+
 class Service:
     state: Dict[str, Any]
     transport: Transport
     topic: Topic
     status: Status
+    opts: ServiceOptions
     id: str
-    nodes: list['Node'] = []
+    nodes: list[Node] = []
 
     def __init__(self,
                  service_id=str,
                  logger: Logger = None,
-                 state: StateSlice = StateSlice(),):
+                 state: StateSlice = StateSlice(),
+                 opts: ServiceOptions = None):
         self.id = service_id
+        self.opts = opts
         self.state = state
         if logger is None:
             self.logger = getLogger()
@@ -97,7 +105,7 @@ class Service:
             if node.node_id == node_id or node_id == '*':
                 await node.stop()
 
-    def append_node(self, node: 'Node') -> None:
+    def append_node(self, node: Node) -> None:
         self.nodes.append(node)
 
     async def subscribe(self, topic: str) -> Queue:

@@ -36,6 +36,7 @@ class DataTimer:
 @dataclass
 class DataNode:
     id: str
+    type: str
     ports: list[DataPort]
 
 class Port:

@@ -15,6 +15,7 @@ from fluxmq.transport import Transport
 from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
+from fluxlib.node import DataNode
 
 if TYPE_CHECKING:
     from fluxlib.node import Node
@@ -67,8 +68,7 @@ class Service:
     async def run(self) -> None:
         await self.transport.connect()
 
-        await self.subscribe_handler(self.topic.configuration(self.id), self.on_configuration)
-        await self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
+        await self.subscribe_handler(self.topic.on_init(self.id), self.on_init)
         await self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
         await self.subscribe_handler(self.topic.control(self.id), self.on_control)
         await self.subscribe_handler(self.topic.start(self.id), self.on_start)
@@ -77,12 +77,13 @@ class Service:
         await self.subscribe_handler(self.topic.status(self.id), self.on_ready)
         await self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
 
-        signal(SIGTERM, self.__graceful_shutdown)
-
         await self.send_status(self.status.connected())
         await self.on_connected(self.id)
 
         return
+
+    def add_node(self, ):
+        node = Node()
 
     async def destroy_node_all(self) -> None:
         await self.destroy_node('*')
@@ -156,7 +157,7 @@ class Service:
         topic = self.topic.set_node_state(node_id)
         await self.transport.publish(topic, status)
 
-    async def on_config(self, message: Message) -> None:
+    async def on_init(self, message: Message) -> None:
         # config with list of nodes
         for node_data in message.payload.nodes:
             node = self.get_node(node_data, self)
@@ -175,8 +176,7 @@ class Service:
         asyncio.run(callback())
         sys.exit(0)
 
-    async def get_node(self, node_data: Node) -> None:
-        #create node instance
+    async def get_node(self, node_data: any) -> None:
         pass
 
     async def on_connected(self, message: Message) -> None:

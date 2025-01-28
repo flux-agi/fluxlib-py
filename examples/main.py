@@ -46,7 +46,7 @@ class RuntimeNode(Node):
 
 
 class RuntimeService(Service):
-    async def on_configuration(self, message: Message) -> None:
+    async def on_init(self, message: Message) -> None:
         config = json.loads(message.payload.encode())
 
         node = RuntimeNode(service=self,
@@ -58,7 +58,7 @@ class RuntimeService(Service):
     async def on_settings(self, message: Message) -> None:
         config = json.loads(message.payload.encode())
 
-        node = RuntimeNode(service=self,
+        node = Node(service=self,
                            node_id=config['node_id'],
                            output_topics=config['output_topics'],
                            input_topics=config['input_topics'])

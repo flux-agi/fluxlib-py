@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 from logging import Logger
-from typing import Dict, Any, Callable, TYPE_CHECKING
+from typing import Dict, Any, Callable, TYPE_CHECKING, Optional
 from asyncio import Task
 from asyncio import Queue
 
@@ -105,12 +105,15 @@ class Node:
                  logger: Logger = None,
                  state: StateSlice = StateSlice(),
                  timer: DataTimer = None,
+                 on_tick: Optional[Callable[[], None]] = None,
                  status_factory: NodeStatus = NodeStatus()):
         self.timer = timer
         self.service = service
         self.node_id = node_id
         self.node = node
         self.state = state
+        self.on_tick_callback = on_tick
+        self.subscriptions = []
 
         for port in filter(lambda p: p.direction == "SOURCE", self.node.ports):
             self.inputs[port.alias] = Port(port, node, service)
@@ -149,19 +152,30 @@ class Node:
             await self.__on_error(err)
             return
 
-        async def read_input_queue(topic: str, queue: Queue):
-            while True:
-                msg = await queue.get()
-                try:
-                    await self.on_input(topic, msg)
-                except Exception as err:
-                    await self.__on_error(err)
+        # async def read_input_queue(topic: str, queue: Queue):
+        #     while True:
+        #         msg = await queue.get()
+        #         try:
+        #             await self.on_input(topic, msg)
+        #         except Exception as err:
+        #             await self.__on_error(err)
 
-        for topic in self.input_topics:
-            queue = await self.service.subscribe(topic)
-            task = asyncio.create_task(read_input_queue(topic, queue))
-            task.add_done_callback(lambda t: None)
-            self.input_tasks.append(task)
+        if not self.service.opts.hasGlobalTick and self.timer:
+            self.tick_task = asyncio.create_task(self._tick_loop())
+        elif self.service.opts.hasGlobalTick:
+            if self.on_tick_callback not in self.subscriptions:
+                self.service.subscribe(self.get_global_topic(), self.on_tick_callback)
+        # for topic in self.input_topics:
+        #     queue = await self.service.subscribe(topic)
+        #     task = asyncio.create_task(read_input_queue(topic, queue))
+        #     task.add_done_callback(lambda t: None)
+        #     self.input_tasks.append(task)
+
+    async def _tick_loop(self) -> None:
+        while True:
+            await asyncio.sleep(self.timer.interval / 1000)
+            if self.on_tick_callback:
+                await self.on_tick_callback()
 
     async def stop(self) -> None:
         try:

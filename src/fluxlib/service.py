@@ -5,6 +5,7 @@ from typing import Coroutine, Any, Callable, Dict, TYPE_CHECKING
 
 import asyncio
 import sys
+import json
 
 from asyncio.queues import Queue
 from signal import signal, SIGTERM
@@ -68,7 +69,7 @@ class Service:
     async def run(self) -> None:
         await self.transport.connect()
 
-        await self.subscribe_handler(self.topic.on_init(self.id), self.on_init)
+        await self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
         await self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
         await self.subscribe_handler(self.topic.control(self.id), self.on_control)
         await self.subscribe_handler(self.topic.start(self.id), self.on_start)
@@ -78,12 +79,10 @@ class Service:
         await self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
 
         await self.send_status(self.status.connected())
+        await self.init()
         await self.on_connected(self.id)
 
         return
-
-    def add_node(self, ):
-        node = Node()
 
     async def destroy_node_all(self) -> None:
         await self.destroy_node('*')
@@ -157,24 +156,15 @@ class Service:
         topic = self.topic.set_node_state(node_id)
         await self.transport.publish(topic, status)
 
-    async def on_init(self, message: Message) -> None:
+    async def on_init(self,  message: Message) -> None:
+        self.config = json.loads(message.payload)
+
+    async def init(self) -> None:
         # config with list of nodes
-        for node_data in message.payload.nodes:
+        for node_data in self.config.nodes:
             node = self.get_node(node_data, self)
             self.nodes.append(node)
         # initialize service store
-        
-    def __graceful_shutdown(self, signal_number, frame) -> None:
-        self.logger.debug("Shutting down gracefully %s, %s...", signal_number, frame)
-
-        async def callback():
-            await self.destroy_node('*')
-            await self.send_status(self.status.paused())
-            await self.on_shutdown(signal_number, frame)
-            await self.transport.close()
-
-        asyncio.run(callback())
-        sys.exit(0)
 
     async def get_node(self, node_data: any) -> None:
         pass
@@ -197,7 +187,7 @@ class Service:
     async def on_settings(self, message: Message) -> None:
         pass
 
-    async def on_configuration(self, message: Message) -> None:
+    async def on_config(self, message: Message) -> None:
         pass
 
     async def on_control(self, message: Message) -> None:

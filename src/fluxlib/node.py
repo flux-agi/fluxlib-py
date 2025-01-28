@@ -177,7 +177,7 @@ class Node:
             await asyncio.sleep(self.timer.interval / 1000)
             if self.on_tick_callback:
                 await self.on_tick_callback()
-
+ 
     async def stop(self) -> None:
         try:
             await self.on_stop()
@@ -227,14 +227,9 @@ class Node:
         pass
 
     async def on_state_changed(self) -> None:
-        await self.service.publish(self.service.topic.set_node_status(self.node_id), self.status)
+        await self.service.publish(self.service.set_node_status(self.node_id), self.status)
 
     async def __on_error(self, err: Exception) -> None:
         self.logger.error(err)
         await self.on_error(err)
         await self.stop()
-
-class NodeFactory(ABC):
-    @abstractmethod
-    def create_node(self, service: 'Service') -> Node:
-        pass

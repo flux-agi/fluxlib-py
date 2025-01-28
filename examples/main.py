@@ -5,8 +5,9 @@ from typing import Any
 from logging import getLogger
 
 from fluxmq.adapter.nats import Nats, NatsTopic, NatsStatus
+from fluxmq.message import Message
+
 from fluxlib.service import Service
-from fluxlib.message import Message
 from fluxlib.node import Node
 
 

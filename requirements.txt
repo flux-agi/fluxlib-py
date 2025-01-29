@@ -7,7 +7,7 @@ colorama==0.4.6
 commitizen==3.30.0
 decli==0.6.2
 flatbuffers==24.3.25
-fluxmq @ git+https://github.com/flux-agi/fluxmq-py.git@a1c412efb90a961c8631c0c394c0e3c9401ae9c1
+fluxmq @ git+https://github.com/flux-agi/fluxmq-py.git@0334c3cdff21093dd8bb0a34acd8eb5a99af2e66
 gast==0.6.0
 google-pasta==0.2.0
 grpcio==1.67.0

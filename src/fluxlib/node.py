@@ -44,7 +44,7 @@ class Port:
     port: DataPort
     service: 'Service'
     node: DataNode
-    state: StateSlice = StateSlice()
+    state: StateSlice = StateSlice(state=None, prefix=None)
 
     def __init__(self, port: DataPort, node, service):
         self.topic = f"{node.id}/{port_key}"
@@ -104,7 +104,7 @@ class Node:
                  node_id: str,
                  node: DataNode,
                  logger: Logger = None,
-                 state: StateSlice = StateSlice(),
+                 state: StateSlice = StateSlice(state=None, prefix=None),
                  timer: DataTimer = None,
                  on_tick: Optional[Callable[[], None]] = None,
                  status_factory: NodeStatus = NodeStatus()):

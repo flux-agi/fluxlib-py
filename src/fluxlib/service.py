@@ -108,7 +108,7 @@ class Service:
             if node.node_id == node_id or node_id == '*':
                 await node.stop()
 
-    def append_node(self, node: Node) -> None:
+    def append_node(self, node: 'Node') -> None:
         self.nodes.append(node)
 
     async def subscribe(self, topic: str) -> Queue:

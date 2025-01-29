@@ -16,7 +16,6 @@ from fluxmq.transport import Transport
 from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
-from fluxlib.node import DataNode
 
 if TYPE_CHECKING:
     from fluxlib.node import Node
@@ -32,7 +31,7 @@ class Service:
     status: Status
     opts: ServiceOptions
     id: str
-    nodes: list[Node] = []
+    nodes: list['Node'] = []
     
 
     def __init__(self,

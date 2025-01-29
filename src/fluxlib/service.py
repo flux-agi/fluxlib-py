@@ -37,7 +37,7 @@ class Service:
     def __init__(self,
                  service_id: str = "UndefinedID",
                  logger: Logger = None,
-                 state: StateSlice = StateSlice(),
+                 state: StateSlice = StateSlice(state=None, prefix=None),
                  opts: ServiceOptions = None):
         self.id = service_id
         self.opts = opts

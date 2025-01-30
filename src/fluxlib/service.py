@@ -245,18 +245,16 @@ class SyncService:
     def run(self) -> None:
         self.transport.connect()
 
-        print(self.transport)
+        self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
+        self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
+        self.subscribe_handler(self.topic.control(self.id), self.on_control)
+        self.subscribe_handler(self.topic.start(self.id), self.on_start)
+        self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
+        self.subscribe_handler(self.topic.error(self.id), self.on_error)
+        self.subscribe_handler(self.topic.status(self.id), self.on_ready)
+        self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
 
-        # self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
-        # self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
-        # self.subscribe_handler(self.topic.control(self.id), self.on_control)
-        # self.subscribe_handler(self.topic.start(self.id), self.on_start)
-        # self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
-        # self.subscribe_handler(self.topic.error(self.id), self.on_error)
-        # self.subscribe_handler(self.topic.status(self.id), self.on_ready)
-        # self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
-
-        # self.send_status(self.status.connected())
+        self.send_status(self.status.connected())
         self.on_connected(self.id)
 
         return

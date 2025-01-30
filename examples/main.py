@@ -68,7 +68,7 @@ class RuntimeService(SyncService):
     async def on_start(self, message: Message) -> None:
         await self.start_node_all()
 
-    async def on_connected(self, message: Message):
+    def on_connected(self, message: Message):
         print("connected: ", message)
 
     async def on_stop(self, message: Message) -> None:

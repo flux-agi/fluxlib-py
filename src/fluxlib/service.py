@@ -300,8 +300,7 @@ class SyncService:
         if msg:
             def read_queue(msg: Message):
                 while True:
-                    print("msg: ", msg)
-                    #handler(message)
+                    handler(msg)
 
             read_queue(msg)
 

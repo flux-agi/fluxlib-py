@@ -12,7 +12,7 @@ from signal import signal, SIGTERM
 
 from fluxmq.message import Message
 from fluxmq.topic import Topic
-from fluxmq.transport import Transport
+from fluxmq.transport import Transport, SyncTransport
 from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
@@ -205,7 +205,7 @@ class Service:
 
 class SyncService:
     state: Dict[str, Any]
-    transport: Transport
+    transport: SyncTransport
     topic: Topic
     status: Status
     opts: ServiceOptions
@@ -227,7 +227,7 @@ class SyncService:
         self.subscriptions = []
 
     def attach(self,
-               transport: Transport,
+               transport: SyncTransport,
                topic: Topic,
                status: Status) -> None:
         """

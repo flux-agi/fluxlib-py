@@ -7,7 +7,7 @@ from logging import getLogger
 from fluxmq.adapter.nats import Nats, NatsTopic, NatsStatus
 from fluxmq.message import Message
 
-from fluxlib.service import Service
+from fluxlib.service import Service, SyncService
 from fluxlib.node import Node
 
 
@@ -46,7 +46,7 @@ class RuntimeNode(Node):
         return
 
 
-class RuntimeService(Service):
+class RuntimeService(SyncService):
     async def on_init(self, message: Message) -> None:
         config = json.loads(message.payload.encode())
 
@@ -100,7 +100,7 @@ async def main():
                    status=NatsStatus(),
                    topic=NatsTopic())
 
-    await service.run()
+    service.run()
 
     while True:
         await asyncio.sleep(1)

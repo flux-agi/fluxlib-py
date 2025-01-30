@@ -4,7 +4,7 @@ import json
 from typing import Any
 from logging import getLogger
 
-from fluxmq.adapter.nats import Nats, NatsTopic, NatsStatus
+from fluxmq.adapter.nats import SyncNats, NatsTopic, NatsStatus
 from fluxmq.message import Message
 
 from fluxlib.service import Service, SyncService
@@ -93,19 +93,16 @@ class RuntimeService(SyncService):
         pass
 
 
-async def main():
+def main():
     service = RuntimeService(logger=getLogger("main"),
                              service_id="test")
-    service.attach(transport=Nats(['nats://127.0.0.1:4222']),
+    service.attach(transport=SyncNats(['nats://127.0.0.1:4222']),
                    status=NatsStatus(),
                    topic=NatsTopic())
 
     service.run()
 
-    while True:
-        await asyncio.sleep(1)
-
-asyncio.run(main())
+main()
 
 # TEMP_PORT = "temp"
 

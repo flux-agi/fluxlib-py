@@ -47,16 +47,17 @@ class RuntimeNode(Node):
 
 
 class RuntimeService(SyncService):
-    async def on_init(self, message: Message) -> None:
-        config = json.loads(message.payload.encode())
+    def on_init(self, message: Message) -> None:
+        print(message.encode())
+        # config = json.loads(message.payload.encode())
 
-        node = RuntimeNode(service=self,
-                           node_id=config['node_id'],
-                           output_topics=config['output_topics'],
-                           input_topics=config['input_topics'])
-        self.append_node(node)
+        # node = RuntimeNode(service=self,
+        #                    node_id=config['node_id'],
+        #                    output_topics=config['output_topics'],
+        #                    input_topics=config['input_topics'])
+        # self.append_node(node)
 
-    async def on_settings(self, message: Message) -> None:
+    def on_settings(self, message: Message) -> None:
         config = json.loads(message.payload.encode())
 
         node = Node(service=self,
@@ -65,30 +66,30 @@ class RuntimeService(SyncService):
                            input_topics=config['input_topics'])
         self.append_node(node)
 
-    async def on_start(self, message: Message) -> None:
-        await self.start_node_all()
+    def on_start(self, message: Message) -> None:
+        self.start_node_all()
 
     def on_connected(self, message: Message):
         print("connected: ", message)
 
-    async def on_stop(self, message: Message) -> None:
-        await self.stop_node_all()
+    def on_stop(self, message: Message) -> None:
+        self.stop_node_all()
 
 
-    async def on_error(self, message: Message):
+    def on_error(self, message: Message):
         print("asdasdasd")
 
-    async def on_control(self, message: Message):
+    def on_control(self, message: Message):
         data = json.loads(message.payload.encode())
         if data['command'] == "set":
             self.logger.debug(f"Executing set command.")
         return
 
-    async def on_shutdown(self, signal_number, frame):
+    def on_shutdown(self, signal_number, frame):
         self.logger.debug(f"Shutting down service.")
         pass
 
-    async def on_tick(self, time: int):
+    def on_tick(self, time: int):
         self.logger.debug(f"System coordinated time: {time}")
         pass
 

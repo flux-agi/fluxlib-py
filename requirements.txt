@@ -7,14 +7,12 @@ colorama==0.4.6
 commitizen==3.30.0
 decli==0.6.2
 flatbuffers==24.3.25
-fluxmq @ git+https://github.com/flux-agi/fluxmq-py.git@0334c3cdff21093dd8bb0a34acd8eb5a99af2e66
+fluxmq @ git+https://github.com/flux-agi/fluxmq-py.git@50310c651803c2f91fb9a7fe9efd46a31fc79784
 gast==0.6.0
 google-pasta==0.2.0
 grpcio==1.67.0
 h5py==3.12.1
 idna==3.10
-importlib-metadata==8.5.0
-jinja2==3.1.4
 keras==3.6.0
 libclang==18.1.1
 Markdown==3.7
@@ -25,13 +23,11 @@ ml-dtypes==0.4.1
 namex==0.0.8
 nats-py==2.9.0
 numpy==1.26.4
-opt-einsum==3.4.0
 optree==0.13.0
 packaging==24.1
 paho-mqtt==2.1.0
 prompt-toolkit==3.0.36
 protobuf==4.25.5
-pygments==2.18.0
 pyswisseph==2.10.3.2
 PyYAML==6.0.2
 questionary==2.0.1
@@ -40,9 +36,7 @@ rich==13.9.3
 six==1.16.0
 termcolor==2.5.0
 tomlkit==0.13.2
-typing-extensions==4.12.2
 urllib3==2.2.3
 wcwidth==0.2.13
-werkzeug==3.0.4
 wrapt==1.16.0
 zipp==3.20.2

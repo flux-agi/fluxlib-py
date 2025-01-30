@@ -295,15 +295,15 @@ class SyncService:
         return
 
     def subscribe_handler(self, topic, handler: Callable[[Message], None]) -> None:
-        queue: Queue = self.subscribe(topic)
+        msg = self.subscribe(topic)
 
-        if queue:
-            def read_queue(queue: Queue[Message]):
+        if msg:
+            def read_queue(msg: Message):
                 while True:
-                    message = queue.get()
-                    handler(message)
+                    print("msg: ", msg)
+                    #handler(message)
 
-            read_queue(queue)
+            read_queue(msg)
 
     def unsubscribe(self, topic: str):
         self.transport.unsubscribe(topic)

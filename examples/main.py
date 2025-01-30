@@ -68,8 +68,15 @@ class RuntimeService(Service):
     async def on_start(self, message: Message) -> None:
         await self.start_node_all()
 
+    async def on_connected(self, message: Message):
+        print("connected: ", message)
+
     async def on_stop(self, message: Message) -> None:
         await self.stop_node_all()
+
+
+    async def on_error(self, message: Message):
+        print("asdasdasd")
 
     async def on_control(self, message: Message):
         data = json.loads(message.payload.encode())
@@ -88,40 +95,43 @@ class RuntimeService(Service):
 
 async def main():
     service = RuntimeService(logger=getLogger("main"),
-                             service_id="runtime")
+                             service_id="test")
     service.attach(transport=Nats(['nats://127.0.0.1:4222']),
                    status=NatsStatus(),
                    topic=NatsTopic())
+
     await service.run()
 
+    while True:
+        await asyncio.sleep(1)
 
 asyncio.run(main())
 
-TEMP_PORT = "temp"
+# TEMP_PORT = "temp"
 
-class AbstractNode(Node):
-    def on_ready(self):
-        pin = self.settings.pin
-        self.state.set("pin", pin ** 2)
-        self.input("humidity").subscribe(lambda h: print(h))
+# class AbstractNode(Node):
+#     def on_ready(self):
+#         pin = self.settings.pin
+#         self.state.set("pin", pin ** 2)
+#         self.input("humidity").subscribe(lambda h: print(h))
 
-    def on_tick(self, time, opts):
-        pin = self.state.get("pin")
-        humidity = self.input("humidity").read() # read last value
-        if humidity:
-            print(f"")
-        temp = 33 # get some temperature
-        self.output(TEMP_PORT).publish(temp)
+#     def on_tick(self, time, opts):
+#         pin = self.state.get("pin")
+#         humidity = self.input("humidity").read() # read last value
+#         if humidity:
+#             print(f"")
+#         temp = 33 # get some temperature
+#         self.output(TEMP_PORT).publish(temp)
 
-class AbstractService(Service):
-    def on_ready(self, message: Service) -> None:
-        print("ready")
+# class AbstractService(Service):
+#     def on_ready(self, message: Service) -> None:
+#         print("ready")
     
-    def get_node(self, node: Node) -> None:
-        return AbstractNode(node)
+#     def get_node(self, node: Node) -> None:
+#         return AbstractNode(node)
 
 
-# main.py
-service = AbstractService(os.get_env().settings)
+# # main.py
+# service = AbstractService(os.get_env().settings)
 
-service.run(flux_mq)
+# service.run(flux_mq)

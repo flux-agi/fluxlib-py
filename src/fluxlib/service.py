@@ -78,7 +78,6 @@ class Service:
         await self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
 
         await self.send_status(self.status.connected())
-        await self.init()
         await self.on_connected(self.id)
 
         return
@@ -157,11 +156,12 @@ class Service:
 
     async def on_init(self,  message: Message) -> None:
         self.config = json.loads(message.payload)
+        await self.init()
 
     async def init(self) -> None:
         # config with list of nodes
         for node_data in self.config.nodes:
-            node = self.get_node(node_data, self)
+            node = self.get_node(node_data)
             self.nodes.append(node)
         # initialize service store
 

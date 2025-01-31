@@ -1,4 +1,5 @@
 from asyncio import Queue
+import asyncio
 import json
 
 from typing import Any
@@ -47,10 +48,9 @@ class RuntimeNode(Node):
 
 
 class RuntimeService(SyncService):
-    def on_init(self, message: Queue) -> None:
-        if message.qsize() > 0:
-            print(message.get())
-            print(message.qsize())
+    def on_init(self, message: Message) -> None:
+        print("message: ", message)
+                
         # config = json.loads(message.payload.encode())
 
         # node = RuntimeNode(service=self,
@@ -60,6 +60,7 @@ class RuntimeService(SyncService):
         # self.append_node(node)
 
     def on_settings(self, message: Message) -> None:
+        print('sdfsdfsdf')
         config = json.loads(message.payload.encode())
 
         node = Node(service=self,

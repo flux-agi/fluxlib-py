@@ -287,22 +287,16 @@ class SyncService:
     def append_node(self, node: 'Node') -> None:
         self.nodes.append(node)
 
-    def subscribe(self, topic: str) -> Queue:
-        if topic not in self.subscriptions:
-            queue = self.transport.subscribe(topic)
+    def subscribe(self, topic: str, handler: Callable[[Message], None]) -> Queue:
+        if handler not in self.subscriptions:
+            queue = self.transport.subscribe(topic, handler)
+            self.subscriptions.append(handler)
             return queue
         
         return
 
     def subscribe_handler(self, topic, handler: Callable[[Message], None]) -> None:
-        msg = self.subscribe(topic)
-
-        if msg:
-            def read_queue(msg: Message):
-                while True:
-                    handler(msg)
-
-            read_queue(msg)
+        self.subscribe(topic, handler)
 
     def unsubscribe(self, topic: str):
         self.transport.unsubscribe(topic)

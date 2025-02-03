@@ -49,8 +49,7 @@ class RuntimeNode(Node):
 
 class RuntimeService(SyncService):
     def on_init(self, message: Message) -> None:
-        print("message: ", message)
-                
+        pass
         # config = json.loads(message.payload.encode())
 
         # node = RuntimeNode(service=self,
@@ -60,7 +59,6 @@ class RuntimeService(SyncService):
         # self.append_node(node)
 
     def on_settings(self, message: Message) -> None:
-        print('sdfsdfsdf')
         config = json.loads(message.payload.encode())
 
         node = Node(service=self,
@@ -80,7 +78,7 @@ class RuntimeService(SyncService):
 
 
     def on_error(self, message: Message):
-        print("asdasdasd")
+        print("error: ", message)
 
     def on_control(self, message: Message):
         data = json.loads(message.payload.encode())

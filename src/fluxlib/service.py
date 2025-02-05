@@ -345,6 +345,9 @@ class SyncService:
     def ready(self, message: Message) -> None:
         pass
 
+    def call(self, path, callback: Callable[[], None]) -> None:
+        pass
+
     def on_start(self, message: Message) -> None:
         pass
 

@@ -23,10 +23,13 @@ class NodeStatus:
         return "started"
 
 @dataclass
-class DataPort:
-    topic: str
+class DataInput:
+    topics: list[str]
     alias: str
-    direction: str
+
+@dataclass
+class DataOutput:
+    alias: str
 
 @dataclass
 class DataTimer:
@@ -37,50 +40,67 @@ class DataTimer:
 class DataNode:
     id: str
     type: str
-    ports: list[DataPort]
+    inputs_ports: list[DataInput]
+    output_port: DataOutput
 
-class Port:
-    topic: str
-    port: DataPort
+class Input:
+    topics: list[str]
+    input: DataInput
+    alias: str
     service: 'Service'
     node: DataNode
     state: StateSlice = StateSlice(state=None, prefix=None)
 
-    def __init__(self, port: DataPort, node, service):
-        self.topic = f"{node.id}/{port_key}"
-        self.port: DataPort = port
+    def __init__(self, input: DataInput, node: DataNode, service):
+        self.input: DataInput = input
+        self.topics = input.topics
         self.service = service
         self.node = node
         self.subscriptions = []
         
-        self.listen(port)
+        self.listen()
 
-    def listen(self, port: DataPort):
-        if port.direction == "TARGET":
-            self.subscribe(self.topic, self.store_value)
+    def listen(self):
+        for topic in self.topics:
+            self._subscribe(topic, self.store_value)
 
     def store_value(self, value):
-        return self.state.set(self.port.alias, value)
+        return self.state.set(self.alias, value)
 
     def read(self) -> str:
-        return self.node.state.get(self.port.alias)
+        return self.state.get(self.alias)
     
     def subscribe(self, callback):
-        if callback not in self.subscriptions:
-            self._subscribe(self.topic, callback)
+        for topic in self.topics:
+            if callback not in self.subscriptions:
+                self._subscribe(topic, callback)
         return
 
-    def _subscribe(self, callback):
+    def _subscribe(self, topic, callback):
         self.subscriptions.append(callback)
-        self.service.subscribe(self.topic, callback)
+        self.service.subscribe(topic, callback)
         return
+
+class Output:
+    alias: str
+    topic: str
+    service: 'Service'
+    node: DataNode
+    state: StateSlice = StateSlice(state=None, prefix=None)
+
+    def __init__(self, output: DataOutput, node, service):
+        self.topic = output.alias
+        self.output: DataOutput = output
+        self.alias = output.alias
+        self.service = service
+        self.node = node
     
     def publish(self, data):
         return self.service.publish(self.topic, data)
 
     def call(self, path, callback):
         return self.service.call(path, callback)
-    
+ 
 class Node:
     id: str
     state: Dict[str, Any]
@@ -96,7 +116,8 @@ class Node:
     status_callback_on_start: Callable[[], None]
     status: str
     state: Dict[str, str]
-    ports: list[DataPort]
+    inputs_ports: list[DataInput]
+    output_port: DataOutput
 
     # add data like an object and also pass the settings
     def __init__(self,
@@ -116,12 +137,11 @@ class Node:
         self.on_tick_callback = on_tick
         self.subscriptions = []
 
-        for port in filter(lambda p: p.direction == "SOURCE", self.node.ports):
-            self.inputs[port.alias] = Port(port, node, service)
+        for input in self.node.inputs_ports:
+            self.inputs[input.alias] = Input(input, node, service)
         
-        for port in filter(lambda p: p.direction == "TARGET", self.node.ports):
-            self.outputs[port.alias] = Port(port, node, service)
-
+        self.outputs[self.node.output_port.alias] = Output(self.node.output_port, node, service)
+            
         if logger is not None:
             self.logger = logger
         else:
@@ -137,10 +157,10 @@ class Node:
         task.add_done_callback(lambda t: None)
 
     def input(self, alias: str):
-        return self.ports[alias]
+        return self.inputs[alias]
 
     def output(self, alias: str):
-        return self.ports[alias]
+        return self.outputs[alias]
 
     def get_global_topic(self):
         return f"service/tick"

@@ -16,6 +16,7 @@ from fluxmq.transport import Transport, SyncTransport
 from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
+from fluxlib.node import NodeSync
 
 if TYPE_CHECKING:
     from fluxlib.node import Node
@@ -287,7 +288,7 @@ class SyncService:
     def append_node(self, node: 'Node') -> None:
         self.nodes.append(node)
 
-    def subscribe(self, topic: str, handler: Callable[[Message], None]) -> Queue:
+    def subscribe(self, topic: str, handler: Callable[[Message], None]):
         if handler not in self.subscriptions:
             queue = self.transport.subscribe(topic, handler)
             self.subscriptions.append(handler)

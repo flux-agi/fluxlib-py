@@ -139,7 +139,8 @@ class Node:
         for input in self.node.inputs_ports:
             self.inputs[input.alias] = Input(input, node, service)
         
-        self.outputs[self.node.output_port.alias] = Output(self.node.output_port, node, service)
+        for output in self.node.outputs_ports:
+            self.inputs[output.alias] = Output(output, node, service)
             
         if logger is not None:
             self.logger = logger

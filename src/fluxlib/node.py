@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 
 import asyncio
+import threading
+import time
 from dataclasses import dataclass
 from logging import Logger
 from typing import Dict, Any, Callable, TYPE_CHECKING, Optional
@@ -12,8 +14,6 @@ from fluxlib.state import StateSlice
 
 if TYPE_CHECKING:
     from fluxlib.service import Service
-
-port_key = "some_key"
 
 class NodeStatus:
     def stopped(self):
@@ -253,3 +253,146 @@ class Node:
         self.logger.error(err)
         await self.on_error(err)
         await self.stop()
+
+
+class NodeSync:
+    id: str
+    state: Dict[str, Any]
+    logger: Logger
+    service: 'Service'
+    outputs: Dict[str, object]
+    inputs: Dict[str, object]
+    input_tasks: list[threading.Thread]
+    node_id: str
+    node: DataNode
+    timer: DataTimer
+    status_callback_on_stop: Callable[[], None]
+    status_callback_on_start: Callable[[], None]
+    status: str
+    state: Dict[str, str]
+    inputs_ports: list[DataInput]
+    output_port: DataOutput
+
+    def __init__(self,
+                 service: 'Service',
+                 node_id: str,
+                 node: DataNode,
+                 logger: Logger = None,
+                 state: StateSlice = StateSlice(state=None, prefix=None),
+                 timer: DataTimer = None,
+                 on_tick: Optional[Callable[[], None]] = None,
+                 status_factory: NodeStatus = NodeStatus()):
+        self.timer = timer
+        self.service = service
+        self.node_id = node_id
+        self.node = node
+        self.state = state
+        self.on_tick_callback = on_tick
+        self.subscriptions = []
+        self.inputs = {}
+        self.outputs = {}
+        self.input_tasks = []
+
+        for input in self.node.inputs_ports:
+            self.inputs[input.alias] = Input(input, node, service)
+
+        self.outputs[self.node.output_port.alias] = Output(self.node.output_port, node, service)
+
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = service.logger
+
+        self.state = state
+        self.status_factory = status_factory
+        self.on_create()
+
+    def set_status(self, status: str):
+        self.status = status
+        self.on_state_changed()
+
+    def input(self, alias: str):
+        return self.inputs[alias]
+
+    def output(self, alias: str):
+        return self.outputs[alias]
+
+    def get_global_topic(self):
+        return f"service/tick"
+
+    def start(self) -> None:
+        try:
+            self.on_start()
+            self.set_status(self.status_factory.started())
+        except Exception as err:
+            self.__on_error(err)
+            return
+
+        if not self.service.opts.hasGlobalTick and self.timer:
+            self.tick_thread = threading.Thread(target=self._tick_loop, daemon=True)
+            self.tick_thread.start()
+        elif self.service.opts.hasGlobalTick:
+            if self.on_tick_callback not in self.subscriptions:
+                self.service.subscribe(self.get_global_topic(), self.on_tick_callback)
+
+    def _tick_loop(self) -> None:
+        while True:
+            time.sleep(self.timer.interval / 1000)
+            if self.on_tick_callback:
+                self.on_tick_callback()
+
+    def stop(self) -> None:
+        try:
+            self.on_stop()
+        except Exception as err:
+            self.logger.error(err)
+        finally:
+            for task in self.input_tasks:
+                task.join()  # Wait for input tasks to finish
+            self.input_tasks.clear()
+
+            for topic in self.input_topics:
+                self.service.unsubscribe(topic)
+
+            self.set_status(self.status_factory.stopped())
+
+    def destroy(self) -> None:
+        self.stop()
+        self.on_destroy()
+
+    def on_create(self) -> None:
+        pass
+
+    def on_start(self) -> None:
+        pass
+
+    def on_stop(self) -> None:
+        pass
+
+    def on_tick(self) -> None:
+        if self.service.opts.hasGlobalTick:
+            self.service.subscribe(self.get_global_topic())
+            return
+
+        if self.timer.interval:
+            while True:
+                time.sleep(self.timer.interval / 1000)
+
+        return
+
+    def on_destroy(self) -> None:
+        pass
+
+    def on_error(self, err: Exception) -> None:
+        pass
+
+    def on_input(self, topic: str, msg: Any):
+        pass
+
+    def on_state_changed(self) -> None:
+        self.service.publish(self.service.set_node_status(self.node_id), self.status)
+
+    def __on_error(self, err: Exception) -> None:
+        self.logger.error(err)
+        self.on_error(err)
+        self.stop()

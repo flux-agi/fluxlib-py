@@ -244,6 +244,7 @@ class SyncService:
         self.transport.connect()
 
         self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
+        self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
         self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
         self.subscribe_handler(self.topic.control(self.id), self.on_control)
         self.subscribe_handler(self.topic.start(self.id), self.on_start)

@@ -4,11 +4,9 @@ from logging import Logger, getLogger
 from typing import Coroutine, Any, Callable, Dict, TYPE_CHECKING
 
 import asyncio
-import sys
 import json
 
 from asyncio.queues import Queue
-from signal import signal, SIGTERM
 
 from fluxmq.message import Message
 from fluxmq.topic import Topic
@@ -16,7 +14,6 @@ from fluxmq.transport import Transport, SyncTransport
 from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
-from fluxlib.node import NodeSync
 
 if TYPE_CHECKING:
     from fluxlib.node import Node

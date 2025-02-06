@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from logging import Logger
 from typing import Dict, Any, Callable, TYPE_CHECKING, Optional
 from asyncio import Task
-from asyncio import Queue
 
 from fluxlib.service import Service
 from fluxlib.state import StateSlice
@@ -41,7 +40,7 @@ class DataNode:
     id: str
     type: str
     inputs_ports: list[DataInput]
-    output_port: DataOutput
+    outputs_ports: list[DataOutput]
 
 class Input:
     topics: list[str]
@@ -117,7 +116,7 @@ class Node:
     status: str
     state: Dict[str, str]
     inputs_ports: list[DataInput]
-    output_port: DataOutput
+    outputs_ports: list[DataOutput]
 
     # add data like an object and also pass the settings
     def __init__(self,
@@ -271,7 +270,7 @@ class NodeSync:
     status: str
     state: Dict[str, str]
     inputs_ports: list[DataInput]
-    output_port: DataOutput
+    outputs_ports: list[DataOutput]
 
     def __init__(self,
                  service: 'Service',
@@ -296,7 +295,8 @@ class NodeSync:
         for input in self.node.inputs_ports:
             self.inputs[input.alias] = Input(input, node, service)
 
-        self.outputs[self.node.output_port.alias] = Output(self.node.output_port, node, service)
+        for output in self.node.outputs_ports:
+            self.inputs[output.alias] = Output(output, node, service)
 
         if logger is not None:
             self.logger = logger

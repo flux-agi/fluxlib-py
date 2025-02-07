@@ -289,12 +289,16 @@ class SyncService:
         self.nodes.append(node)
 
     def subscribe(self, topic: str, handler: Callable[[Message], None]):
-        if handler not in self.subscriptions:
-            queue = self.transport.subscribe(topic, handler)
-            self.subscriptions.append(handler)
-            return queue
+
+        if handler is not None:
+            if handler not in self.subscriptions:
+                sub = self.transport.subscribe(topic, handler)
+                self.subscriptions.append(handler)
+                
+                return sub
+            
+        return self.transport.subscribe(topic, None)
         
-        return
 
     def subscribe_handler(self, topic, handler: Callable[[Message], None]) -> None:
         self.subscribe(topic, handler)

@@ -323,7 +323,7 @@ class SyncService:
 
     def on_init(self,  message: Message) -> None:
         data = json.loads(message.payload)
-        self.config = data["params"]
+        self.config = data["payload"]["params"]
         self.init()
 
     def init(self) -> None:

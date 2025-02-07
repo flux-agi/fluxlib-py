@@ -153,7 +153,8 @@ class Service:
         await self.transport.publish(topic, status)
 
     async def on_init(self,  message: Message) -> None:
-        self.config = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
+        data = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
+        self.config = data.payload.params
         await self.init()
 
     async def init(self) -> None:
@@ -323,8 +324,8 @@ class SyncService:
         self.transport.publish(topic, status)
 
     def on_init(self,  message: Message) -> None:
-        data = json.loads(message.payload)
-        self.config = data["payload"]["params"]
+        data = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
+        self.config = data.payload.params
         self.init()
 
     def init(self) -> None:

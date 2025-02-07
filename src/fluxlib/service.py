@@ -5,6 +5,7 @@ from typing import Coroutine, Any, Callable, Dict, TYPE_CHECKING
 
 import asyncio
 import json
+from types import SimpleNamespace
 
 from asyncio.queues import Queue
 
@@ -152,7 +153,7 @@ class Service:
         await self.transport.publish(topic, status)
 
     async def on_init(self,  message: Message) -> None:
-        self.config = json.loads(message.payload)
+        self.config = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
         await self.init()
 
     async def init(self) -> None:

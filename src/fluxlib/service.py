@@ -322,7 +322,7 @@ class SyncService:
         self.transport.publish(topic, status)
 
     def on_init(self,  message: Message) -> None:
-        data = json.loads(message.payload.encode())
+        data = json.loads(message.payload)
         self.config = data["services"][0]
         self.init()
 

@@ -118,15 +118,14 @@ class Service:
     async def subscribe_handler(self, topic, handler: Callable[[Message], Coroutine[Any, Any, None]]) -> Task:
         queue: Queue = await self.subscribe(topic)
 
-        if queue:
-            async def read_queue(queue: asyncio.queues.Queue[Message]):
-                while True:
-                    message = await queue.get()
-                    await handler(message)
+        async def read_queue(queue: asyncio.queues.Queue[Message]):
+            while True:
+                message = await queue.get()
+                await handler(message)
 
-            task = asyncio.create_task(read_queue(queue))
-            task.add_done_callback(lambda t: None)
-            return task
+        task = asyncio.create_task(read_queue(queue))
+        task.add_done_callback(lambda t: None)
+        return task
 
     async def unsubscribe(self, topic: str):
         await self.transport.unsubscribe(topic)

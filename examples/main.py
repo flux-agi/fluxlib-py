@@ -59,19 +59,22 @@ class RuntimeService(SyncService):
         # self.append_node(node)
 
     def on_settings(self, message: Message) -> None:
-        config = json.loads(message.payload.encode())
-
-        node = Node(service=self,
-                           node_id=config['node_id'],
-                           output_topics=config['output_topics'],
-                           input_topics=config['input_topics'])
-        self.append_node(node)
+        config = json.loads(message.payload)
+        print("config: ", config)
+        # node = Node(service=self,
+        #                    node_id=config['node_id'],
+        #                    output_topics=config['output_topics'],
+        #                    input_topics=config['input_topics'])
+        # self.append_node(node)
 
     def on_start(self, message: Message) -> None:
         self.start_node_all()
 
     def on_connected(self, message: Message):
         print("connected: ", message)
+
+    def on_config(self, message: Message):
+        print("on_config: ", message)
 
     def on_stop(self, message: Message) -> None:
         self.stop_node_all()
@@ -103,6 +106,9 @@ def main():
                    topic=NatsTopic())
 
     service.run()
+
+    while True:
+        1 + 1
 
 main()
 

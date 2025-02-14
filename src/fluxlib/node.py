@@ -189,10 +189,10 @@ class Node:
     async def on_error(self, err: Exception) -> None:
         pass
 
-    async def on_input(self, topic: str, msg: Any):
+    async def on_input(self, msg: Any):
         pass
 
-    async def on_settings(self, topic: str, msg: Any):
+    async def on_settings(self, msg: Any):
         pass
 
     async def on_state_changed(self) -> None:

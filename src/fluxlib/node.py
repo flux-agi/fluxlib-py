@@ -29,6 +29,7 @@ class DataInput:
 @dataclass
 class DataOutput:
     alias: str
+    topics: list[str]
 
 @dataclass
 class DataTimer:
@@ -39,74 +40,16 @@ class DataTimer:
 class DataNode:
     id: str
     type: str
-    inputs_ports: list[DataInput]
-    outputs_ports: list[DataOutput]
-
-class Input:
-    topics: list[str]
-    input: DataInput
-    alias: str
-    service: 'Service'
-    node: DataNode
-    state: StateSlice = StateSlice(state=None, prefix=None)
-
-    def __init__(self, input: DataInput, node: DataNode, service):
-        self.input: DataInput = input
-        self.topics = input.topics
-        self.service = service
-        self.node = node
-        self.subscriptions = []
-        
-        self.listen()
-
-    def listen(self):
-        for topic in self.topics:
-            self._subscribe(topic, self.store_value)
-
-    def store_value(self, value):
-        return self.state.set(self.alias, value)
-
-    def read(self) -> str:
-        return self.state.get(self.alias)
-    
-    def subscribe(self, callback):
-        for topic in self.topics:
-            if callback not in self.subscriptions:
-                self._subscribe(topic, callback)
-        return
-
-    def _subscribe(self, topic, callback):
-        self.subscriptions.append(callback)
-        self.service.subscribe(topic, callback)
-        return
-
-class Output:
-    alias: str
-    topic: str
-    service: 'Service'
-    node: DataNode
-    state: StateSlice = StateSlice(state=None, prefix=None)
-
-    def __init__(self, output: DataOutput, node, service):
-        self.topic = output.alias
-        self.output: DataOutput = output
-        self.alias = output.alias
-        self.service = service
-        self.node = node
-    
-    def publish(self, data):
-        return self.service.publish(self.topic, data)
-
-    def call(self, path, callback):
-        return self.service.call(path, callback)
+    inputs: list[DataInput]
+    outputs: list[DataOutput]
  
 class Node:
     id: str
     state: Dict[str, Any]
     logger: Logger
     service: 'Service'
-    outputs: Dict[str, object]
-    inputs: Dict[str, object]
+    outputs: Dict[str, object] = dict()
+    inputs: Dict[str, object] = dict()
     input_tasks: list[Task]
     node_id: str
     node: DataNode
@@ -115,8 +58,6 @@ class Node:
     status_callback_on_start: Callable[[], None]
     status: str
     state: Dict[str, str]
-    inputs_ports: list[DataInput]
-    outputs_ports: list[DataOutput]
 
     # add data like an object and also pass the settings
     def __init__(self,
@@ -136,11 +77,11 @@ class Node:
         self.on_tick_callback = on_tick
         self.subscriptions = []
 
-        for input in self.node.inputs_ports:
-            self.inputs[input.alias] = Input(input, node, service)
+        for input in self.node.inputs:
+            self.inputs[input.alias] = Input(input, self, service)
         
-        for output in self.node.outputs_ports:
-            self.inputs[output.alias] = Output(output, node, service)
+        for output in self.node.outputs:
+            self.outputs[output.alias] = Output(output, self, service)
             
         if logger is not None:
             self.logger = logger
@@ -149,7 +90,7 @@ class Node:
 
         self.state = state
         self.status_factory = status_factory
-        asyncio.run(self.on_create())
+        #self.on_create()
 
     def set_status(self, status: str):
         self.status = status
@@ -159,12 +100,18 @@ class Node:
     def input(self, alias: str):
         return self.inputs[alias]
 
-    def output(self, alias: str):
+    def output(self, alias: str) -> 'Output':
         return self.outputs[alias]
 
     def get_global_topic(self):
         return f"service/tick"
     
+    async def init(self):
+        self.service.subscribe_handler(self.service.topic.on_service_settings(self.id), self.on_settings)
+        
+        for input in self.inputs.values():
+            await input.listen()
+            
     async def start(self) -> None:
         try:
             await self.on_start()
@@ -246,6 +193,9 @@ class Node:
     async def on_input(self, topic: str, msg: Any):
         pass
 
+    async def on_settings(self, topic: str, msg: Any):
+        pass
+
     async def on_state_changed(self) -> None:
         await self.service.publish(self.service.set_node_status(self.node_id), self.status)
 
@@ -270,8 +220,6 @@ class NodeSync:
     status_callback_on_start: Callable[[], None]
     status: str
     state: Dict[str, str]
-    inputs_ports: list[DataInput]
-    outputs_ports: list[DataOutput]
 
     def __init__(self,
                  service: 'Service',
@@ -293,10 +241,10 @@ class NodeSync:
         self.outputs = {}
         self.input_tasks = []
 
-        for input in self.node.inputs_ports:
+        for input in self.node.inputs:
             self.inputs[input.alias] = Input(input, node, service)
 
-        for output in self.node.outputs_ports:
+        for output in self.node.outputs:
             self.inputs[output.alias] = Output(output, node, service)
 
         if logger is not None:
@@ -397,3 +345,55 @@ class NodeSync:
         self.logger.error(err)
         self.on_error(err)
         self.stop()
+
+
+class Input:
+    topics: list[str]
+    input: DataInput
+    alias: str
+    service: 'Service'
+    node: Node
+    state: StateSlice = StateSlice(state=None, prefix=None)
+
+    def __init__(self, input: DataInput, node: DataNode, service):
+        self.input: DataInput = input
+        self.topics = input.topics
+        self.service = service
+        self.node = node
+        self.subscriptions = []
+
+    async def listen(self):
+        for topic in self.topics:
+            print("input listen: ", topic)
+            await self.subscribe(topic, self.store_value)
+
+    def store_value(self, value):
+        return self.state.set(self.alias, value)
+
+    def read(self) -> str:
+        return self.state.get(self.alias)
+
+    async def subscribe(self, topic, callback):
+        return await self.service.subscribe_handler(topic, callback)
+
+class Output:
+    alias: str
+    topics: list[str]
+    service: 'Service'
+    node: Node
+    state: StateSlice = StateSlice(state=None, prefix=None)
+
+    def __init__(self, output: DataOutput, node, service):
+        self.topics = output.topics
+        self.output: DataOutput = output
+        self.alias = output.alias
+        self.service = service
+        self.node = node
+    
+    async def publish(self, data):
+        for topic in self.topics:
+            await self.service.publish(topic, data)
+        return
+
+    async def call(self, path, callback):
+        return self.service.call(path, callback)

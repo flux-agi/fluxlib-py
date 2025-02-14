@@ -68,7 +68,7 @@ class Service:
         await self.transport.connect()
         await self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
         await self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
-        await self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
+        await self.subscribe_handler(self.topic.on_service_settings(self.id), self.on_settings)
         await self.subscribe_handler(self.topic.start(self.id), self.on_start)
         await self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
         await self.subscribe_handler(self.topic.error(self.id), self.on_error)
@@ -159,7 +159,7 @@ class Service:
     async def init(self) -> None:
         # config with list of nodes
         for node_data in self.config.nodes:
-            node = self.get_node(node_data)
+            node = await self.get_node(node_data)
             self.nodes.append(node)
         # initialize service store
 
@@ -243,7 +243,7 @@ class SyncService:
 
         self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
         self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
-        self.subscribe_handler(self.topic.settings(self.id), self.on_settings)
+        self.subscribe_handler(self.topic.on_service_settings(self.id), self.on_settings)
         self.subscribe_handler(self.topic.start(self.id), self.on_start)
         self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
         self.subscribe_handler(self.topic.error(self.id), self.on_error)

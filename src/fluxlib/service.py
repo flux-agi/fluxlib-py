@@ -68,7 +68,7 @@ class Service:
         await self.transport.connect()
         await self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
         await self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
-        await self.subscribe_handler(self.topic.on_service_settings(self.id), self.on_settings)
+        await self.subscribe_handler(self.topic.service_settings(self.id), self.on_settings)
         await self.subscribe_handler(self.topic.start(self.id), self.on_start)
         await self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
         await self.subscribe_handler(self.topic.error(self.id), self.on_error)
@@ -243,7 +243,7 @@ class SyncService:
 
         self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
         self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
-        self.subscribe_handler(self.topic.on_service_settings(self.id), self.on_settings)
+        self.subscribe_handler(self.topic.service_settings(self.id), self.on_settings)
         self.subscribe_handler(self.topic.start(self.id), self.on_start)
         self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
         self.subscribe_handler(self.topic.error(self.id), self.on_error)

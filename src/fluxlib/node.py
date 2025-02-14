@@ -107,8 +107,8 @@ class Node:
         return f"service/tick"
     
     async def init(self):
-        self.service.subscribe_handler(self.service.topic.on_service_settings(self.id), self.on_settings)
-        
+        self.service.subscribe_handler(self.service.topic.service_settings(self.id), self.on_settings)
+
         for input in self.inputs.values():
             await input.listen()
             

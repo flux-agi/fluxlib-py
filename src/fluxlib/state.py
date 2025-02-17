@@ -47,7 +47,7 @@ class StateSlice():
     def get(self, key: str):
         return self._state.get(f"{self.prefix}/{key}")
     
-    def set(self, key: str, val: any, opts: any):
+    def set(self, key: str, val: any, opts: any = None):
         self._state.set(f"{self.prefix}/{key}", val)
         return
     

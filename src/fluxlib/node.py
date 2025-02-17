@@ -64,7 +64,7 @@ class Node:
                  node_id: str,
                  node: DataNode,
                  logger: Logger = None,
-                 state: StateSlice = StateSlice(state=None, prefix=None),
+                 state: StateSlice = None,
                  timer: DataTimer = None,
                  on_tick: Optional[Callable[[], None]] = None,
                  status_factory: NodeStatus = NodeStatus()):
@@ -75,6 +75,10 @@ class Node:
         self.state = state
         self.on_tick_callback = on_tick
         self.subscriptions = []
+
+        if state == None:
+            state = StateSlice(state=None, prefix=node_id)
+        self.state = state
 
         for input in self.node.inputs:
             self.inputs[input.alias] = Input(input, self, service)

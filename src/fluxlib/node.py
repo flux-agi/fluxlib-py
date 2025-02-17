@@ -357,6 +357,7 @@ class Input:
         self.input: DataInput = input
         self.topics = input.topics
         self.service = service
+        self.alias = input.alias
         self.node = node
         self.subscriptions = []
 

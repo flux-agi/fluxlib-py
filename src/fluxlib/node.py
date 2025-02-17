@@ -371,7 +371,7 @@ class Input:
     async def listen(self):
         for topic in self.topics:
             print("input listen: ", topic)
-            await self.subscribe(topic, self.store_value)
+            await self._subscribe(topic, self.store_value)
 
     def store_value(self, value):
         return self.state.set(self.alias, value)
@@ -379,8 +379,15 @@ class Input:
     def read(self) -> str:
         return self.state.get(self.alias)
 
-    async def subscribe(self, topic, callback):
+    async def _subscribe(self, topic, callback):
         return await self.service.subscribe_handler(topic, callback)
+    
+    async def subscribe_one(self, topic, callback):
+        return await self.service.subscribe_handler(topic, callback)
+    
+    async def subscribe(self, callback):
+        for topic in self.topics:
+            await self._subscribe(topic, callback)
 
 class Output:
     alias: str

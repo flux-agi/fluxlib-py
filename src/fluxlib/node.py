@@ -243,7 +243,7 @@ class NodeSync:
             self.inputs[input.alias] = Input(input, node, service)
 
         for output in self.node.outputs:
-            self.inputs[output.alias] = Output(output, node, service)
+            self.outputs[output.alias] = Output(output, node, service)
 
         if logger is not None:
             self.logger = logger

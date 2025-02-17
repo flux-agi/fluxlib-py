@@ -41,7 +41,7 @@ class State:
 
 class StateSlice():
     def __init__(self, state: DataState, prefix):
-        self._state = state
+        self._state = state or {}
         self.prefix = prefix
 
     def get(self, key: str):

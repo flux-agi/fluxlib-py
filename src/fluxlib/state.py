@@ -20,13 +20,13 @@ class DataState:
         pass 
 
 class State:
-    def __init__(self):
-        self._state = {}
+    def __init__(self, state):
+        self._state = state or {}
 
     def get(self, key: str):
         return self._state[key]
     
-    def set(self, key: str, val: any, opts: any):
+    def set(self, key: str, val: any, opts: any = None):
         self._state[key] = val
         return
     
@@ -41,7 +41,7 @@ class State:
 
 class StateSlice():
     def __init__(self, state: DataState, prefix):
-        self._state = state or {}
+        self._state = State(state)
         self.prefix = prefix
 
     def get(self, key: str):

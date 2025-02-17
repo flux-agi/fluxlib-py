@@ -259,10 +259,10 @@ class NodeSync:
         self.on_state_changed()
 
     def input(self, alias: str):
-        return self.inputs[alias]
+        return self.inputs[alias] or None
 
     def output(self, alias: str):
-        return self.outputs[alias]
+        return self.outputs[alias] or None
 
     def get_global_topic(self):
         return f"service/tick"

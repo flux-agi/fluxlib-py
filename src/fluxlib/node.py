@@ -113,7 +113,7 @@ class Node:
     
     async def init(self):
         await self.service.subscribe_handler(self.service.topic.node_settings(self.id), self.on_settings)
-        await self.service.subscribe_handler(self.service.topic.node_status(self.id), self.on_create)
+        await self.service.subscribe_handler(self.service.topic.node_status(self.id), self.on_status)
 
         for input in self.inputs.values():
             await input.listen()
@@ -181,6 +181,9 @@ class Node:
     async def on_stop(self) -> None:
         pass
 
+    async def on_status(self, msg):
+        pass
+    
     async def on_tick(self) -> None:
         if self.service.opts.hasGlobalTick:
             self.service.subscribe(self.get_global_topic())

@@ -16,9 +16,9 @@ from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
 
-Message = TypeVar('Message')
+MessageType = TypeVar('Message', bound=Message)
 
-class TypedQueue(Queue, Generic[Message]):
+class TypedQueue(Queue, Generic[MessageType]):
     pass
 
 if TYPE_CHECKING:
@@ -120,10 +120,10 @@ class Service:
         
         return
 
-    async def subscribe_handler(self, topic, handler: Callable[[Message], Coroutine[Any, Any, None]]) -> Task:
+    async def subscribe_handler(self, topic, handler: Callable[[MessageType], Coroutine[Any, Any, None]]) -> Task:
         queue: Queue = await self.subscribe(topic)
 
-        async def read_queue(queue: TypedQueue[Message]):
+        async def read_queue(queue: TypedQueue[MessageType]):
             while True:
                 message = await queue.get()
                 if asyncio.iscoroutinefunction(handler):
@@ -147,7 +147,7 @@ class Service:
         await self.transport.request(topic, payload)
         return
 
-    async def respond(self, message: Message, response: bytes):
+    async def respond(self, message: MessageType, response: bytes):
         await self.transport.respond(message, response)
         return
 
@@ -159,7 +159,7 @@ class Service:
         topic = self.topic.set_node_state(node_id)
         await self.transport.publish(topic, status)
 
-    async def on_init(self,  message: Message) -> None:
+    async def on_init(self,  message: MessageType) -> None:
         data = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
         self.config = data.payload.params
         await self.init()
@@ -174,28 +174,28 @@ class Service:
     async def get_node(self, node_data: any) -> None:
         pass
 
-    async def on_connected(self, message: Message) -> None:
+    async def on_connected(self, message: MessageType) -> None:
         pass
 
-    async def on_ready(self, message: Message) -> None:
+    async def on_ready(self, message: MessageType) -> None:
         pass
 
-    def ready(self, message: Message) -> None:
+    def ready(self, message: MessageType) -> None:
         pass
 
-    async def on_start(self, message: Message) -> None:
+    async def on_start(self, message: MessageType) -> None:
         pass
 
-    async def on_stop(self, message: Message) -> None:
+    async def on_stop(self, message: MessageType) -> None:
         pass
 
-    async def on_restart(self, message: Message) -> None:
+    async def on_restart(self, message: MessageType) -> None:
         pass
 
-    async def on_settings(self, message: Message) -> None:
+    async def on_settings(self, message: MessageType) -> None:
         pass
 
-    async def on_config(self, message: Message) -> None:
+    async def on_config(self, message: MessageType) -> None:
         pass
 
     async def on_tick(self, time: int) -> None:
@@ -204,7 +204,7 @@ class Service:
     async def on_shutdown(self, signal_number, frame) -> None:
         pass
 
-    async def on_error (self, message: Message) -> None:
+    async def on_error (self, message: MessageType) -> None:
         pass
 
 class SyncService:
@@ -291,7 +291,7 @@ class SyncService:
     def append_node(self, node: 'Node') -> None:
         self.nodes.append(node)
 
-    def subscribe(self, topic: str, handler: Callable[[Message], None]):
+    def subscribe(self, topic: str, handler: Callable[[MessageType], None]):
 
         if handler is not None:
             if handler not in self.subscriptions:
@@ -303,7 +303,7 @@ class SyncService:
         return self.transport.subscribe(topic, None)
         
 
-    def subscribe_handler(self, topic, handler: Callable[[Message], None]) -> None:
+    def subscribe_handler(self, topic, handler: Callable[[MessageType], None]) -> None:
         self.subscribe(topic, handler)
 
     def unsubscribe(self, topic: str):
@@ -318,7 +318,7 @@ class SyncService:
         self.transport.request(topic, payload)
         return
 
-    def respond(self, message: Message, response: bytes):
+    def respond(self, message: MessageType, response: bytes):
         self.transport.respond(message, response)
         return
 
@@ -330,7 +330,7 @@ class SyncService:
         topic = self.topic.set_node_state(node_id)
         self.transport.publish(topic, status)
 
-    def on_init(self,  message: Message) -> None:
+    def on_init(self,  message: MessageType) -> None:
         data = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
         self.config = data.payload.params
         self.init()
@@ -345,31 +345,31 @@ class SyncService:
     def get_node(self, node_data: any) -> None:
         pass
 
-    def on_connected(self, message: Message) -> None:
+    def on_connected(self, message: MessageType) -> None:
         pass
 
-    def on_ready(self, message: Message) -> None:
+    def on_ready(self, message: MessageType) -> None:
         pass
 
-    def ready(self, message: Message) -> None:
+    def ready(self, message: MessageType) -> None:
         pass
 
     def call(self, path, callback: Callable[[], None]) -> None:
         pass
 
-    def on_start(self, message: Message) -> None:
+    def on_start(self, message: MessageType) -> None:
         pass
 
-    def on_stop(self, message: Message) -> None:
+    def on_stop(self, message: MessageType) -> None:
         pass
 
-    def on_restart(self, message: Message) -> None:
+    def on_restart(self, message: MessageType) -> None:
         pass
 
-    def on_settings(self, message: Message) -> None:
+    def on_settings(self, message: MessageType) -> None:
         pass
 
-    def on_config(self, message: Message) -> None:
+    def on_config(self, message: MessageType) -> None:
         pass
 
     def on_tick(self, time: int) -> None:
@@ -378,5 +378,5 @@ class SyncService:
     def on_shutdown(self, signal_number, frame) -> None:
         pass
 
-    def on_error (self, message: Message) -> None:
+    def on_error (self, message: MessageType) -> None:
         pass

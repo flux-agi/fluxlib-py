@@ -1,7 +1,7 @@
 from asyncio import Task
 from dataclasses import dataclass
 from logging import Logger, getLogger
-from typing import Coroutine, Any, Callable, Dict, TYPE_CHECKING
+from typing import Coroutine, Any, Callable, List, Dict, TYPE_CHECKING
 
 import asyncio
 import json
@@ -30,7 +30,7 @@ class Service:
     status: Status
     opts: ServiceOptions
     id: str
-    nodes: list['Node'] = []
+    nodes: List['Node'] = []
     
 
     def __init__(self,
@@ -209,7 +209,7 @@ class SyncService:
     status: Status
     opts: ServiceOptions
     id: str
-    nodes: list['Node'] = []
+    nodes: List['Node'] = []
     
 
     def __init__(self,

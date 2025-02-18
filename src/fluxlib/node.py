@@ -181,7 +181,7 @@ class Node:
     async def on_stop(self) -> None:
         pass
 
-    async def on_status(self, msg):
+    def on_status(self, msg):
         status = msg.payload.decode('utf-8')
 
         if status == self.status_factory.created():

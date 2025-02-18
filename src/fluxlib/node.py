@@ -181,11 +181,14 @@ class Node:
     async def on_stop(self) -> None:
         pass
 
-    def on_status(self, msg):
+    async def on_status(self, msg):
         status = msg.payload.decode('utf-8')
 
         if status == self.status_factory.created():
-            self.on_create()
+            if asyncio.iscoroutinefunction(self.on_create):
+                await self.on_create()
+            else:
+                self.on_create()
 
     async def on_tick(self) -> None:
         if self.service.opts.hasGlobalTick:
@@ -368,6 +371,7 @@ class Input:
     alias: str
     service: 'Service'
     node: Node
+    
     state: StateSlice = StateSlice(state=None, prefix=None)
 
     def __init__(self, input: DataInput, node: DataNode, service):

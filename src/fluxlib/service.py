@@ -121,7 +121,10 @@ class Service:
         async def read_queue(queue: asyncio.queues.Queue[Message]):
             while True:
                 message = await queue.get()
-                await handler(message)
+                if asyncio.iscoroutinefunction(handler):
+                    await handler(message)
+                else:
+                    handler(message)
 
         task = asyncio.create_task(read_queue(queue))
         task.add_done_callback(lambda t: None)

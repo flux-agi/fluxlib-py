@@ -118,7 +118,7 @@ class Node:
         for input in self.inputs.values():
             await input.listen()
 
-        await self.set_status(self.status_factory.created())
+        self.set_status(self.status_factory.created())
             
     async def start(self) -> None:
         try:

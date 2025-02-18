@@ -113,6 +113,7 @@ class Node:
     
     async def init(self):
         await self.service.subscribe_handler(self.service.topic.node_settings(self.id), self.on_settings)
+        await self.service.subscribe_handler(self.service.topic.node_created(self.id), self.on_create)
 
         for input in self.inputs.values():
             await input.listen()

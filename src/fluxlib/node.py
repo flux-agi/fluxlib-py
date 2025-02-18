@@ -5,7 +5,7 @@ import threading
 import time
 from dataclasses import dataclass
 from logging import Logger
-from typing import Dict, Any, Callable, TYPE_CHECKING, Optional
+from typing import List, Dict, Any, Callable, TYPE_CHECKING, Optional
 from asyncio import Task
 
 from fluxlib.service import Service
@@ -26,13 +26,13 @@ class NodeStatus:
 
 @dataclass
 class DataInput:
-    topics: list[str]
+    topics: List[str]
     alias: str
 
 @dataclass
 class DataOutput:
     alias: str
-    topics: list[str]
+    topics: List[str]
 
 @dataclass
 class DataTimer:
@@ -43,8 +43,8 @@ class DataTimer:
 class DataNode:
     id: str
     type: str
-    inputs: list[DataInput]
-    outputs: list[DataOutput]
+    inputs: List[DataInput]
+    outputs: List[DataOutput]
  
 class Node:
     id: str
@@ -53,7 +53,7 @@ class Node:
     service: 'Service'
     outputs: Dict[str, object] = dict()
     inputs: Dict[str, object] = dict()
-    input_tasks: list[Task]
+    input_tasks: List[Task]
     node: DataNode
     timer: DataTimer
     status_callback_on_stop: Callable[[], None]
@@ -226,7 +226,7 @@ class NodeSync:
     service: 'Service'
     outputs: Dict[str, object]
     inputs: Dict[str, object]
-    input_tasks: list[threading.Thread]
+    input_tasks: List[threading.Thread]
     node: DataNode
     timer: DataTimer
     status_callback_on_stop: Callable[[], None]
@@ -363,7 +363,7 @@ class NodeSync:
 
 
 class Input:
-    topics: list[str]
+    topics: List[str]
     input: DataInput
     alias: str
     service: 'Service'
@@ -401,7 +401,7 @@ class Input:
 
 class Output:
     alias: str
-    topics: list[str]
+    topics: List[str]
     service: 'Service'
     node: Node
     state: StateSlice = StateSlice(state=None, prefix=None)

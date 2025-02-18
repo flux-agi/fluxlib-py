@@ -1,7 +1,7 @@
 from asyncio import Task
 from dataclasses import dataclass
 from logging import Logger, getLogger
-from typing import Coroutine, Any, Callable, List, Dict, TYPE_CHECKING
+from typing import Coroutine, Any, TypeVar, Generic, Callable, List, Dict, TYPE_CHECKING
 
 import asyncio
 import json
@@ -15,6 +15,11 @@ from fluxmq.transport import Transport, SyncTransport
 from fluxmq.status import Status
 
 from fluxlib.state import StateSlice
+
+Message = TypeVar('Message')
+
+class TypedQueue(Queue, Generic[Message]):
+    pass
 
 if TYPE_CHECKING:
     from fluxlib.node import Node
@@ -108,7 +113,7 @@ class Service:
     def append_node(self, node: 'Node') -> None:
         self.nodes.append(node)
 
-    async def subscribe(self, topic: str) -> Queue:
+    async def subscribe(self, topic: str) -> TypedQueue:
         if topic not in self.subscriptions:
             queue = await self.transport.subscribe(topic)
             return queue
@@ -118,7 +123,7 @@ class Service:
     async def subscribe_handler(self, topic, handler: Callable[[Message], Coroutine[Any, Any, None]]) -> Task:
         queue: Queue = await self.subscribe(topic)
 
-        async def read_queue(queue: asyncio.queues.Queue[Message]):
+        async def read_queue(queue: TypedQueue[Message]):
             while True:
                 message = await queue.get()
                 if asyncio.iscoroutinefunction(handler):

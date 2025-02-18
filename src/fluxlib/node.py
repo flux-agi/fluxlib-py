@@ -182,8 +182,11 @@ class Node:
         pass
 
     async def on_status(self, msg):
-        pass
-    
+        status = msg.payload.decode('utf-8')
+
+        if status == self.status_factory.created():
+            self.on_create()
+
     async def on_tick(self) -> None:
         if self.service.opts.hasGlobalTick:
             self.service.subscribe(self.get_global_topic())

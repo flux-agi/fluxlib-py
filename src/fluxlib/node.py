@@ -20,6 +20,9 @@ class NodeStatus:
 
     def started(self):
         return "started"
+    
+    def created(self):
+        return "created"
 
 @dataclass
 class DataInput:
@@ -93,7 +96,6 @@ class Node:
 
         self.state = state
         self.status_factory = status_factory
-        #self.on_create()
 
     def set_status(self, status: str):
         self.status = status
@@ -114,6 +116,8 @@ class Node:
 
         for input in self.inputs.values():
             await input.listen()
+
+        await self.set_status(self.status_factory.created())
             
     async def start(self) -> None:
         try:
@@ -259,7 +263,6 @@ class NodeSync:
 
         self.state = state
         self.status_factory = status_factory
-        self.on_create()
 
     def set_status(self, status: str):
         self.status = status

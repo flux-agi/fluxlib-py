@@ -113,7 +113,7 @@ class Node:
     
     async def init(self):
         await self.service.subscribe_handler(self.service.topic.node_settings(self.id), self.on_settings)
-        await self.service.subscribe_handler(self.service.topic.node_created(self.id), self.on_create)
+        await self.service.subscribe_handler(self.service.topic.node_status(self.id), self.on_create)
 
         for input in self.inputs.values():
             await input.listen()
@@ -205,7 +205,7 @@ class Node:
         pass
 
     async def on_state_changed(self) -> None:
-        await self.service.publish(self.service.set_node_status(self.id), self.status)
+        await self.service.publish(self.service.topic.node_status(self.id), self.status)
 
     async def __on_error(self, err: Exception) -> None:
         self.logger.error(err)
@@ -348,7 +348,7 @@ class NodeSync:
         pass
 
     def on_state_changed(self) -> None:
-        self.service.publish(self.service.set_node_status(self.id), self.status)
+        self.service.publish(self.service.topic.node_status(self.id), self.status)
 
     def __on_error(self, err: Exception) -> None:
         self.logger.error(err)

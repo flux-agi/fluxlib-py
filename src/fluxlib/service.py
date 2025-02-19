@@ -99,6 +99,9 @@ class Service:
             if node.node_id == node_id or node_id == '*':
                 await node.destroy()
                 self.nodes.remove(node)
+    
+    async def request_config(self):
+        self.publish(self.topic.configuration_request(self.id), self.status)
 
     async def start_node(self, node_id: str) -> None:
         for node in self.nodes:

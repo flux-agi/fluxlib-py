@@ -83,11 +83,13 @@ class Node:
             state = StateSlice(state=None, prefix=node_id)
         self.state = state
 
-        for input in self.node.inputs:
-            self.inputs[input.alias] = Input(input, self, service)
+        if self.node.inputs:
+            for input in self.node.inputs:
+                self.inputs[input.alias] = Input(input, self, service)
         
-        for output in self.node.outputs:
-            self.outputs[output.alias] = Output(output, self, service)
+        if self.node.outputs:
+            for output in self.node.outputs:
+                self.outputs[output.alias] = Output(output, self, service)
             
         if logger is not None:
             self.logger = logger
@@ -260,11 +262,13 @@ class NodeSync:
             state = StateSlice(state=None, prefix=node_id)
         self.state = state
 
-        for input in self.node.inputs:
-            self.inputs[input.alias] = Input(input, node, service)
+        if self.node.inputs:
+            for input in self.node.inputs:
+                self.inputs[input.alias] = Input(input, node, service)
 
-        for output in self.node.outputs:
-            self.outputs[output.alias] = Output(output, node, service)
+        if self.node.outputs:
+            for output in self.node.outputs:
+                self.outputs[output.alias] = Output(output, node, service)
 
         if logger is not None:
             self.logger = logger

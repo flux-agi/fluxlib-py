@@ -169,7 +169,7 @@ class Service:
 
     async def init(self) -> None:
         # config with list of nodes
-        for node_data in self.config.nodes:
+        for node_data in self.config:
             node = await self.get_node(node_data)
             self.nodes.append(node)
         # initialize service store
@@ -340,7 +340,7 @@ class SyncService:
 
     def init(self) -> None:
         # config with list of nodes
-        for node_data in self.config.nodes:
+        for node_data in self.config:
             node = self.get_node(node_data)
             self.nodes.append(node)
         # initialize service store

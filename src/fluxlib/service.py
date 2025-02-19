@@ -164,7 +164,7 @@ class Service:
 
     async def on_init(self,  message: MessageType) -> None:
         data = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
-        self.config = data.payload.params
+        self.config = data
         await self.init()
 
     async def init(self) -> None:
@@ -335,7 +335,7 @@ class SyncService:
 
     def on_init(self,  message: MessageType) -> None:
         data = json.loads(message.payload, object_hook=lambda d: SimpleNamespace(**d))
-        self.config = data.payload.params
+        self.config = data
         self.init()
 
     def init(self) -> None:

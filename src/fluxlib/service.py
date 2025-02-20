@@ -80,7 +80,7 @@ class Service:
         await self.subscribe_handler(self.topic.status(self.id), self.on_ready)
         await self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
         await self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
-        await self.subscribe_handler(self.topic.get_common_data(), self.on_get_common_data)
+        await self.subscribe_handler(self.topic.get_common_data(self.id), self.on_get_common_data)
 
         await self.send_status(self.status.connected())
         await self.on_connected(self.id)
@@ -273,7 +273,7 @@ class SyncService:
         self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
         self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
         self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
-        self.subscribe_handler(self.topic.get_common_data(), self.on_get_common_data)
+        self.subscribe_handler(self.topic.get_common_data(self.id), self.on_get_common_data)
 
         self.send_status(self.status.connected())
         self.on_connected(self.id)

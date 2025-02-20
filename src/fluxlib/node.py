@@ -43,6 +43,7 @@ class DataTimer:
 class DataNode:
     id: str
     type: str
+    settings: Dict[str, Any]
     inputs: List[DataInput]
     outputs: List[DataOutput]
  
@@ -76,6 +77,7 @@ class Node:
         self.service = service
         self.id = node_id
         self.node = node
+        self.settings = node.settings
         self.state = state
         self.on_tick_callback = on_tick
         self.subscriptions = []

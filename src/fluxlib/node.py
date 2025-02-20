@@ -59,8 +59,8 @@ class Node:
     status_callback_on_stop: Callable[[], None]
     status_callback_on_start: Callable[[], None]
     status: str
-    settings: Any
     state: Dict[str, str]
+    settings: Dict[str, Any] = dict()
 
     # add data like an object and also pass the settings
     def __init__(self,
@@ -239,7 +239,7 @@ class NodeSync:
     status_callback_on_start: Callable[[], None]
     status: str
     state: Dict[str, str]
-    settings: Any
+    settings: Dict[str, Any] = dict()
 
     def __init__(self,
                  service: 'Service',

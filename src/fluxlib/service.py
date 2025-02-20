@@ -79,6 +79,8 @@ class Service:
         await self.subscribe_handler(self.topic.error(self.id), self.on_error)
         await self.subscribe_handler(self.topic.status(self.id), self.on_ready)
         await self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
+        await self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
+        await self.subscribe_handler(self.topic.get_common_data(), self.on_get_common_data)
 
         await self.send_status(self.status.connected())
         await self.on_connected(self.id)
@@ -102,6 +104,12 @@ class Service:
     
     async def request_config(self):
         await self.publish(self.topic.configuration_request(self.id), self.status.ready())
+
+    async def on_get_common_data(self, message: MessageType):
+        pass
+
+    async def on_ide_status(self, message: MessageType):
+        pass
 
     async def start_node(self, node_id: str) -> None:
         for node in self.nodes:
@@ -157,6 +165,9 @@ class Service:
     async def send_status(self, status: str):
         topic = self.topic.status(self.id)
         await self.transport.publish(topic, status)
+
+    async def send_common_data(self, message):
+        await self.transport.publish(self.topic.set_common_data(), message)
 
     async def send_node_state(self, node_id: str, status: str):
         topic = self.topic.set_node_state(node_id)
@@ -259,7 +270,10 @@ class SyncService:
         self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
         self.subscribe_handler(self.topic.error(self.id), self.on_error)
         self.subscribe_handler(self.topic.status(self.id), self.on_ready)
+        self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
         self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
+        self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
+        self.subscribe_handler(self.topic.get_common_data(), self.on_get_common_data)
 
         self.send_status(self.status.connected())
         self.on_connected(self.id)
@@ -328,6 +342,9 @@ class SyncService:
     def send_status(self, status: str):
         topic = self.topic.status(self.id)
         self.transport.publish(topic, status)
+    
+    def send_common_data(self, message):
+        self.transport.publish(self.topic.set_common_data(), message)
 
     def send_node_state(self, node_id: str, status: str):
         topic = self.topic.set_node_state(node_id)
@@ -349,6 +366,12 @@ class SyncService:
         pass
 
     def on_connected(self, message: MessageType) -> None:
+        pass
+
+    def on_ide_status(self, message: MessageType) -> None:
+        pass
+
+    async def on_get_common_data(self, message: MessageType):
         pass
 
     def on_ready(self, message: MessageType) -> None:

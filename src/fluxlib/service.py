@@ -167,7 +167,7 @@ class Service:
         await self.transport.publish(topic, status)
 
     async def send_common_data(self, message):
-        await self.transport.publish(self.topic.set_common_data(), message)
+        await self.transport.publish(self.topic.set_common_data(self.id), message)
 
     async def send_node_state(self, node_id: str, status: str):
         topic = self.topic.set_node_state(node_id)
@@ -344,7 +344,7 @@ class SyncService:
         self.transport.publish(topic, status)
     
     def send_common_data(self, message):
-        self.transport.publish(self.topic.set_common_data(), message)
+        self.transport.publish(self.topic.set_common_data(self.id), message)
 
     def send_node_state(self, node_id: str, status: str):
         topic = self.topic.set_node_state(node_id)

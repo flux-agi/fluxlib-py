@@ -343,6 +343,9 @@ class SyncService:
         topic = self.topic.status(self.id)
         self.transport.publish(topic, status)
     
+    def request_config(self):
+        self.transport.publish(self.topic.configuration_request(self.id), self.status.ready())
+
     def send_common_data(self, message):
         self.transport.publish(self.topic.set_common_data(self.id), message)
 

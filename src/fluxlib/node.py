@@ -427,7 +427,7 @@ class Output:
     
     async def publish(self, data):
         for topic in self.topics:
-            await self.service.publish(topic, data)
+            await self.service.publish(topic.replace("/", "."), data)
         return
 
     async def call(self, path, callback):

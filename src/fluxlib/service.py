@@ -97,32 +97,53 @@ class Service:
 
     async def run(self) -> None:
         """
-        Run the service and initialize all nodes.
+        Start the service and subscribe to service-level topics.
         
-        This method starts the service, initializes all nodes, and sets up
-        message handlers for service-level events.
+        This method initializes the service by:
+        1. Ensuring connection to the transport
+        2. Subscribing to service-level topics
+        3. Initializing all nodes
+        
+        Raises:
+            ConnectionError: If the service fails to connect to the transport
+            Exception: For any other errors during service startup
         """
         try:
-            self.logger.info(f"Starting service {self.id}")
+            # Ensure we're connected to the transport
+            if not self.transport:
+                raise ConnectionError("Transport not attached to service. Call attach() before run().")
+            
+            # Attempt to connect to the transport if it has a connect method
+            if hasattr(self.transport, 'connect') and callable(getattr(self.transport, 'connect')):
+                try:
+                    self.logger.info(f"Connecting to transport...")
+                    await self.transport.connect()
+                    self.logger.info(f"Successfully connected to transport")
+                except Exception as e:
+                    self.logger.error(f"Failed to connect to transport: {str(e)}")
+                    raise ConnectionError(f"Failed to connect to transport: {str(e)}")
             
             # Subscribe to service-level topics
-            await self.subscribe_handler(f"service/{self.id}/init", self.on_init)
-            await self.subscribe_handler(f"service/{self.id}/connected", self.on_connected)
-            await self.subscribe_handler(f"service/{self.id}/ready", self.on_ready)
-            await self.subscribe_handler(f"service/{self.id}/start", self.on_start)
-            await self.subscribe_handler(f"service/{self.id}/stop", self.on_stop)
-            await self.subscribe_handler(f"service/{self.id}/restart", self.on_restart)
-            await self.subscribe_handler(f"service/{self.id}/settings", self.on_settings)
-            await self.subscribe_handler(f"service/{self.id}/config", self.on_config)
-            await self.subscribe_handler(f"service/{self.id}/tick", self.on_tick)
-            await self.subscribe_handler(f"service/{self.id}/error", self.on_error)
-            await self.subscribe_handler(f"service/{self.id}/get_common_data", self.on_get_common_data)
-            await self.subscribe_handler(f"service/{self.id}/ide_status", self.on_ide_status)
+            await self.transport.connect()
+            await self.subscribe_handler(self.topic.configuration(self.id), self.on_init)
+            await self.subscribe_handler(self.topic.configuration(self.id), self.on_config)
+            await self.subscribe_handler(self.topic.service_settings(self.id), self.on_settings)
+            await self.subscribe_handler(self.topic.start(self.id), self.on_start)
+            await self.subscribe_handler(self.topic.stop(self.id), self.on_stop)
+            await self.subscribe_handler(self.topic.error(self.id), self.on_error)
+            await self.subscribe_handler(self.topic.status(self.id), self.on_ready)
+            await self.subscribe_handler(self.topic.restart_node(self.id), self.on_restart)
+            await self.subscribe_handler(self.topic.ide_status(), self.on_ide_status)
+            await self.subscribe_handler(self.topic.get_common_data(self.id), self.on_get_common_data)
             
             # Initialize all nodes
             await self.init()
             
             self.logger.info(f"Service {self.id} running")
+        except ConnectionError as e:
+            self.logger.error(f"Connection error starting service {self.id}: {str(e)}")
+            self.logger.debug(f"Connection error details: {traceback.format_exc()}")
+            raise
         except Exception as e:
             self.logger.error(f"Error starting service {self.id}: {str(e)}")
             self.logger.debug(f"Exception details: {traceback.format_exc()}")

@@ -73,7 +73,7 @@ class EchoClient:
             msg: The NATS message
         """
         try:
-            data = json.loads(msg.data.decode())
+            data = json.loads(msg.payload.decode())
             logger.info(f"Received response: {data}")
         except Exception as e:
             logger.error(f"Error handling response: {str(e)}")

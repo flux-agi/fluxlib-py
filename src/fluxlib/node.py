@@ -226,6 +226,29 @@ class Node:
         await self.on_error(err)
         await self.stop()
 
+    def process_settings(self, data: Dict[str, Any]) -> None:
+        """
+        Process and update node settings.
+        
+        Args:
+            data: The new settings data
+        """
+        try:
+            # Ensure settings is a dictionary
+            if not isinstance(self.settings, dict):
+                self.settings = {}
+                
+            # Update all keys from the data - accept any keys
+            for key, value in data.items():
+                self.settings[key] = value
+                    
+            # Log that settings were updated
+            self.logger.info(f"Settings updated for node {self.id}")
+        except Exception as e:
+            import traceback
+            self.logger.error(f"Error processing settings for node {self.id}: {str(e)}")
+            self.logger.debug(f"Exception details: {traceback.format_exc()}")
+
 
 class NodeSync:
     id: str
@@ -256,6 +279,13 @@ class NodeSync:
         self.service = service
         self.id = node_id
         self.node = node
+        
+        # Initialize settings from node
+        if hasattr(node, 'settings') and node.settings is not None:
+            self.settings = node.settings
+        else:
+            self.settings = {}
+            
         self.on_tick_callback = on_tick
         self.subscriptions = []
         self.inputs = {}
@@ -363,6 +393,53 @@ class NodeSync:
 
     def on_input(self, topic: str, msg: Any):
         pass
+
+    async def on_settings(self, msg: Any):
+        """
+        Handle settings update messages.
+        
+        Args:
+            msg: The settings message
+        """
+        try:
+            import json
+            # Try to parse the message payload as JSON
+            if hasattr(msg, 'payload'):
+                data = json.loads(msg.payload)
+                self.logger.debug(f"Received node settings update for node {self.id}")
+                self.process_settings(data)
+            else:
+                # If the message doesn't have a payload attribute, try to use it directly
+                self.process_settings(msg)
+        except json.JSONDecodeError:
+            self.logger.error(f"Failed to parse settings payload as JSON for node {self.id}")
+        except Exception as e:
+            import traceback
+            self.logger.error(f"Error handling settings message for node {self.id}: {str(e)}")
+            self.logger.debug(f"Exception details: {traceback.format_exc()}")
+            
+    def process_settings(self, data: Dict[str, Any]) -> None:
+        """
+        Process and update node settings.
+        
+        Args:
+            data: The new settings data
+        """
+        try:
+            # Ensure settings is a dictionary
+            if not isinstance(self.settings, dict):
+                self.settings = {}
+                
+            # Update all keys from the data - accept any keys
+            for key, value in data.items():
+                self.settings[key] = value
+                    
+            # Log that settings were updated
+            self.logger.info(f"Settings updated for node {self.id}")
+        except Exception as e:
+            import traceback
+            self.logger.error(f"Error processing settings for node {self.id}: {str(e)}")
+            self.logger.debug(f"Exception details: {traceback.format_exc()}")
 
     def on_state_changed(self) -> None:
         self.service.publish(self.service.topic.node_status(self.id), self.status)

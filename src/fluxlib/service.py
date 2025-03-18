@@ -180,10 +180,41 @@ class Service:
 
     async def init(self) -> None:
         # config with list of nodes
-        for node_data in self.config:
-            node = await self.get_node(node_data)
-            self.nodes.append(node)
-        # initialize service store
+        try:
+            # Check if config is iterable
+            if hasattr(self.config, "__iter__"):
+                for node_data in self.config:
+                    try:
+                        node = await self.get_node(node_data)
+                        if node:
+                            self.nodes.append(node)
+                    except Exception as e:
+                        self.logger.error(f"Error initializing node: {str(e)}")
+                        import traceback
+                        self.logger.debug(f"Exception details: {traceback.format_exc()}")
+            else:
+                # If config is not iterable, it might be a SimpleNamespace with a nodes attribute
+                if hasattr(self.config, "nodes"):
+                    nodes = self.config.nodes
+                    # Check if nodes is iterable
+                    if hasattr(nodes, "__iter__"):
+                        for node_data in nodes:
+                            try:
+                                node = await self.get_node(node_data)
+                                if node:
+                                    self.nodes.append(node)
+                            except Exception as e:
+                                self.logger.error(f"Error initializing node: {str(e)}")
+                                import traceback
+                                self.logger.debug(f"Exception details: {traceback.format_exc()}")
+                    else:
+                        self.logger.warning(f"Config nodes is not iterable: {type(nodes)}")
+                else:
+                    self.logger.warning(f"Config does not have a nodes attribute: {type(self.config)}")
+        except Exception as e:
+            self.logger.error(f"Error initializing nodes: {str(e)}")
+            import traceback
+            self.logger.debug(f"Exception details: {traceback.format_exc()}")
 
     async def get_node(self, node_data: any) -> None:
         pass
@@ -360,10 +391,41 @@ class SyncService:
 
     def init(self) -> None:
         # config with list of nodes
-        for node_data in self.config:
-            node = self.get_node(node_data)
-            self.nodes.append(node)
-        # initialize service store
+        try:
+            # Check if config is iterable
+            if hasattr(self.config, "__iter__"):
+                for node_data in self.config:
+                    try:
+                        node = self.get_node(node_data)
+                        if node:
+                            self.nodes.append(node)
+                    except Exception as e:
+                        self.logger.error(f"Error initializing node: {str(e)}")
+                        import traceback
+                        self.logger.debug(f"Exception details: {traceback.format_exc()}")
+            else:
+                # If config is not iterable, it might be a SimpleNamespace with a nodes attribute
+                if hasattr(self.config, "nodes"):
+                    nodes = self.config.nodes
+                    # Check if nodes is iterable
+                    if hasattr(nodes, "__iter__"):
+                        for node_data in nodes:
+                            try:
+                                node = self.get_node(node_data)
+                                if node:
+                                    self.nodes.append(node)
+                            except Exception as e:
+                                self.logger.error(f"Error initializing node: {str(e)}")
+                                import traceback
+                                self.logger.debug(f"Exception details: {traceback.format_exc()}")
+                    else:
+                        self.logger.warning(f"Config nodes is not iterable: {type(nodes)}")
+                else:
+                    self.logger.warning(f"Config does not have a nodes attribute: {type(self.config)}")
+        except Exception as e:
+            self.logger.error(f"Error initializing nodes: {str(e)}")
+            import traceback
+            self.logger.debug(f"Exception details: {traceback.format_exc()}")
 
     def get_node(self, node_data: any) -> None:
         pass

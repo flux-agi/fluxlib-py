@@ -77,29 +77,68 @@ class Node:
         self.service = service
         self.id = node_id
         self.node = node
-        self.settings = node.settings
-        self.state = state
+        
+        # Initialize settings from node
+        if hasattr(node, 'settings') and node.settings is not None:
+            self.settings = node.settings
+        else:
+            self.settings = {}
+            
         self.on_tick_callback = on_tick
         self.subscriptions = []
+        self.inputs = {}
+        self.outputs = {}
+        self.input_tasks = []
 
         if state == None:
             state = StateSlice(state=None, prefix=node_id)
         self.state = state
 
-        if self.node.inputs:
-            for input in self.node.inputs:
-                self.inputs[input.alias] = Input(input, self, service)
+        # Handle different types of node.inputs
+        if hasattr(self.node, 'inputs'):
+            inputs = self.node.inputs
+            # Check if inputs is iterable
+            try:
+                iter(inputs)
+                # If we get here, inputs is iterable
+                for input_item in inputs:
+                    # Handle input_item being a dict or object
+                    if isinstance(input_item, dict):
+                        alias = input_item.get('alias')
+                        if alias:
+                            self.inputs[alias] = Input(input_item, node, service)
+                    elif hasattr(input_item, 'alias'):
+                        alias = input_item.alias
+                        self.inputs[alias] = Input(input_item, node, service)
+            except TypeError:
+                # inputs is not iterable, might be a SimpleNamespace
+                self.logger.warning(f"Node inputs is not iterable: {type(inputs)}")
         
-        if self.node.outputs:
-            for output in self.node.outputs:
-                self.outputs[output.alias] = Output(output, self, service)
+        # Handle different types of node.outputs
+        if hasattr(self.node, 'outputs'):
+            outputs = self.node.outputs
+            # Check if outputs is iterable
+            try:
+                iter(outputs)
+                # If we get here, outputs is iterable
+                for output_item in outputs:
+                    # Handle output_item being a dict or object
+                    if isinstance(output_item, dict):
+                        alias = output_item.get('alias')
+                        if alias:
+                            self.outputs[alias] = Output(output_item, node, service)
+                    elif hasattr(output_item, 'alias'):
+                        alias = output_item.alias
+                        self.outputs[alias] = Output(output_item, node, service)
+            except TypeError:
+                # outputs is not iterable, might be a SimpleNamespace
+                self.logger.warning(f"Node outputs is not iterable: {type(outputs)}")
             
         if logger is not None:
             self.logger = logger
         else:
             self.logger = service.logger
 
-        self.state = state
         self.status_factory = status_factory
 
     def set_status(self, status: str):
@@ -212,11 +251,32 @@ class Node:
     async def on_error(self, err: Exception) -> None:
         pass
 
-    async def on_input(self, msg: Any):
+    async def on_input(self, topic: str, msg: Any):
         pass
 
     async def on_settings(self, msg: Any):
-        pass
+        """
+        Handle settings update messages.
+        
+        Args:
+            msg: The settings message
+        """
+        try:
+            import json
+            # Try to parse the message payload as JSON
+            if hasattr(msg, 'payload'):
+                data = json.loads(msg.payload)
+                self.logger.debug(f"Received node settings update for node {self.id}")
+                self.process_settings(data)
+            else:
+                # If the message doesn't have a payload attribute, try to use it directly
+                self.process_settings(msg)
+        except json.JSONDecodeError:
+            self.logger.error(f"Failed to parse settings payload as JSON for node {self.id}")
+        except Exception as e:
+            import traceback
+            self.logger.error(f"Error handling settings message for node {self.id}: {str(e)}")
+            self.logger.debug(f"Exception details: {traceback.format_exc()}")
 
     async def on_state_changed(self) -> None:
         await self.service.publish(self.service.topic.node_status(self.id), self.status)
@@ -280,12 +340,19 @@ class NodeSync:
         self.id = node_id
         self.node = node
         
-        # Initialize settings from node
+        # Process settings from node and service config
+        self.settings = {}
+        
+        # First, initialize from node settings if available
         if hasattr(node, 'settings') and node.settings is not None:
-            self.settings = node.settings
-        else:
-            self.settings = {}
+            self.settings.update(node.settings)
             
+        # Then, if service has config settings for this node, apply those
+        if hasattr(service, 'config') and hasattr(service.config, 'nodes'):
+            node_config = service.config.nodes.get(node_id, {})
+            if node_config and 'settings' in node_config:
+                self.settings.update(node_config['settings'])
+                
         self.on_tick_callback = on_tick
         self.subscriptions = []
         self.inputs = {}
@@ -394,7 +461,7 @@ class NodeSync:
     def on_input(self, topic: str, msg: Any):
         pass
 
-    async def on_settings(self, msg: Any):
+    def on_settings(self, msg: Any):
         """
         Handle settings update messages.
         
